@@ -39,6 +39,7 @@
             "Shammaa\\SmartGlide\\Tests\\": "tests/"
         }
     },
+    
     "extra": {
         "laravel": {
             "providers": [
