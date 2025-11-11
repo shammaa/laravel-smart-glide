@@ -23,6 +23,12 @@
         "illuminate/testing": "^10.0|^11.0|^12.0",
         "orchestra/testbench": "^9.0"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/shammaa/laravel-smart-glide"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Shammaa\\SmartGlide\\": "src/"
