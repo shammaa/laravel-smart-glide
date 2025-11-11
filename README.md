@@ -6,14 +6,14 @@ Advanced image processing toolkit for Laravel with unified `/img` routing, respo
 
 ## Features
 
-- 🔐 **Signed URLs & Validation** &mdash; Protect image transformations with HMAC signatures, strict parameter validation, and extension whitelisting.
-- 🖼️ **Responsive Components** &mdash; Blade components generate `srcset`, `sizes`, and background media queries automatically.
-- ⚙️ **Smart Profiles** &mdash; Define reusable WebP/AVIF compression presets and override them from an external PHP profile file.
-- 📦 **Unified Delivery Path** &mdash; All image responses flow through `/img/...`, simplifying CDNs, caching rules, and observability.
-- 🧠 **Intelligent Caching** &mdash; LRU-inspired cache manifest with size budgets, warmup metadata, and background eviction.
-- 🧾 **SEO-Ready** &mdash; Configurable attributes (`loading`, `fetchpriority`, `aria`, `title`, etc.) plus optional JSON-LD `ImageObject` snippets.
-- 🛡️ **Security Rules** &mdash; Block remote sources (optional), enforce max width/height/quality ranges, and stricter MIME filters.
-- 🧰 **DX Friendly** &mdash; Publishable config, auto-discovered components, and clean service provider wiring.
+- 🔐 **Signed URLs & Validation** — Protect image transformations with HMAC signatures, strict parameter validation, and extension whitelisting.
+- 🖼️ **Responsive Components** — Blade components generate `srcset`, `sizes`, and background media queries automatically.
+- ⚙️ **Smart Profiles** — Define reusable WebP/AVIF compression presets and override them from an external PHP profile file.
+- 📦 **Unified Delivery Path** — All image responses flow through `/img/...`, simplifying CDNs, caching rules, and observability.
+- 🧠 **Intelligent Caching** — LRU-inspired cache manifest with size budgets, warmup metadata, and background eviction.
+- 🧾 **SEO-Ready** — Configurable attributes (`loading`, `fetchpriority`, `aria`, `title`, etc.) plus optional JSON-LD `ImageObject` snippets.
+- 🛡️ **Security Rules** — Block remote sources (optional), enforce max width/height/quality ranges, and stricter MIME filters.
+- 🧰 **DX Friendly** — Publishable config, auto-discovered components, and clean service provider wiring.
 
 ---
 
@@ -29,7 +29,7 @@ Advanced image processing toolkit for Laravel with unified `/img` routing, respo
 ## Installation
 
 ```bash
-composer require appwriters/laravel-smart-glide
+composer require shammaa/laravel-smart-glide
 ```
 
 The service provider and components are auto-discovered. If you need to disable discovery, register the provider manually in `config/app.php`:
@@ -249,5 +249,4 @@ Contributions and issues are welcome once the package is public.
 ## License
 
 Released under the [MIT License](LICENSE.md).
-
 
