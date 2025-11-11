@@ -76,7 +76,9 @@ final class SmartGlideManager
 
         $query = http_build_query($parameters);
 
-        return sprintf('%s/%s%s', $base, $normalizedPath, $query ? '?' . $query : '');
+        $relative = sprintf('%s/%s%s', $base, $normalizedPath, $query ? '?' . $query : '');
+
+        return url($relative);
     }
 
     private function initialize(): void
