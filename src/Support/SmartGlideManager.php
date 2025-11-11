@@ -11,10 +11,10 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
 use RuntimeException;
+use Shammaa\SmartGlide\Support\Responses\SymfonyStreamResponseFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class SmartGlideManager
@@ -96,7 +96,7 @@ final class SmartGlideManager
         $cache = new Filesystem(new LocalFilesystemAdapter($cachePath));
 
         $this->server = ServerFactory::create([
-            'response' => new SymfonyResponseFactory(),
+            'response' => new SymfonyStreamResponseFactory(),
             'source' => $source,
             'cache' => $cache,
             'cache_path_prefix' => '',
