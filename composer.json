@@ -2,6 +2,7 @@
     "name": "shammaa/laravel-smart-glide",
     "description": "Advanced image processing toolkit for Laravel with unified /img routing, responsive components, and intelligent caching.",
     "type": "library",
+    "version": "0.1.0",
     "license": "MIT",
     "authors": [
         {
