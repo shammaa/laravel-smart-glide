@@ -240,7 +240,10 @@ final class SmartGlideManager
             abort(403, 'Smart Glide signature missing.');
         }
 
-        $expected = $this->generateSignature($path, $parameters);
+        $parametersWithoutSignature = $parameters;
+        unset($parametersWithoutSignature['s']);
+
+        $expected = $this->generateSignature($path, $parametersWithoutSignature);
 
         if (! hash_equals($expected, $supplied)) {
             abort(403, 'Invalid Smart Glide signature.');
