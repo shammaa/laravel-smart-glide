@@ -32,13 +32,14 @@ Advanced image processing toolkit for Laravel with unified `/img` routing, respo
 composer require shammaa/laravel-smart-glide
 ```
 
-The service provider and components are auto-discovered. If you need to disable discovery, register the provider manually in `config/app.php`:
+The service provider and components are auto-discovered. If discovery is disabled, register the provider manually in `bootstrap/app.php` (Laravel 11+):
 
 ```php
-'providers' => [
-    // ...
-    Shammaa\SmartGlide\SmartGlideServiceProvider::class,
-],
+return Application::configure(basePath: dirname(__DIR__))
+    ->withProviders([
+        Shammaa\SmartGlide\SmartGlideServiceProvider::class,
+    ])
+    ->create();
 ```
 
 Publish the configuration file when you want to customize paths, caching, or SEO defaults:
