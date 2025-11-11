@@ -4,37 +4,52 @@ declare(strict_types=1);
 
 namespace Shammaa\SmartGlide\Support\Responses;
 
+use League\Flysystem\FilesystemOperator;
 use League\Glide\Responses\ResponseFactoryInterface;
-use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class SymfonyStreamResponseFactory implements ResponseFactoryInterface
 {
-    /**
-     * @param mixed $request
-     */
-    public function create($request, PsrResponseInterface $response)
+    public function create(FilesystemOperator $cache, string $path)
     {
-        $stream = $response->getBody();
-
-        $headers = [];
-        foreach ($response->getHeaders() as $name => $values) {
-            $headers[$name] = implode(', ', $values);
+        if (! $cache->fileExists($path)) {
+            return new StreamedResponse(static function (): void {
+            }, 404);
         }
 
+        $headers = [
+            'Content-Type' => $this->guessMimeType($cache, $path),
+            'Content-Length' => (string) $cache->fileSize($path),
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $cache->lastModified($path)) . ' GMT',
+            'Cache-Control' => 'public, max-age=31536000',
+        ];
+
         return new StreamedResponse(
-            static function () use ($stream): void {
-                if ($stream->isSeekable()) {
-                    $stream->rewind();
+            static function () use ($cache, $path): void {
+                $stream = $cache->readStream($path);
+
+                if (! is_resource($stream)) {
+                    return;
                 }
 
-                while (! $stream->eof()) {
-                    echo $stream->read(8192);
+                while (! feof($stream)) {
+                    echo fread($stream, 8192);
                 }
+
+                fclose($stream);
             },
-            $response->getStatusCode(),
+            200,
             $headers
         );
+    }
+
+    private function guessMimeType(FilesystemOperator $cache, string $path): string
+    {
+        try {
+            return $cache->mimeType($path) ?? 'application/octet-stream';
+        } catch (\Throwable) {
+            return 'application/octet-stream';
+        }
     }
 }
 
