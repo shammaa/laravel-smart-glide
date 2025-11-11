@@ -20,13 +20,14 @@ final class SmartBackground extends Component
         public bool $lazy = true,
         public array $seo = [],
         public ?bool $schema = null,
-        public ?string $alt = null
+        public ?string $alt = null,
+        public array|string|bool|null $responsive = null
     ) {
     }
 
     public function render(): View
     {
-        $breakpoints = config('smart-glide.breakpoints', []);
+        $breakpoints = $this->resolveBreakpoints();
         $baseParameters = $this->buildParameters();
         $styles = $this->buildStyles($breakpoints, $baseParameters);
         $seoAttributes = $this->seoAttributes();
@@ -150,6 +151,57 @@ final class SmartBackground extends Component
         $filtered = array_filter($data, static fn ($value) => ! is_null($value) && $value !== '');
 
         return json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function resolveBreakpoints(): array
+    {
+        if ($this->responsive === false) {
+            return [];
+        }
+
+        if (is_array($this->responsive)) {
+            return $this->normalizeBreakpoints($this->responsive);
+        }
+
+        if (is_string($this->responsive)) {
+            $preset = config("smart-glide.responsive_sets.{$this->responsive}");
+
+            if ($preset) {
+                return $this->normalizeBreakpoints($preset);
+            }
+
+            $values = array_map('trim', explode(',', $this->responsive));
+
+            return $this->normalizeBreakpoints($values);
+        }
+
+        return $this->normalizeBreakpoints(config('smart-glide.breakpoints', []));
+    }
+
+    private function normalizeBreakpoints(array $values): array
+    {
+        $widths = [];
+
+        foreach ($values as $value) {
+            if (is_array($value) && isset($value['w'])) {
+                $value = $value['w'];
+            }
+
+            if (! is_numeric($value)) {
+                continue;
+            }
+
+            $int = (int) $value;
+
+            if ($int > 0) {
+                $widths[] = $int;
+            }
+        }
+
+        $widths = array_values(array_unique($widths));
+        sort($widths);
+
+        return $widths;
     }
 }
 

@@ -19,15 +19,17 @@ final class SmartImage extends Component
         public array $params = [],
         public ?string $class = null,
         public array $seo = [],
-        public ?bool $schema = null
+        public ?bool $schema = null,
+        public array|string|bool|null $responsive = null
     ) {
     }
 
     public function render(): View
     {
         $baseParameters = $this->buildParameters();
+        $breakpoints = $this->resolveBreakpoints();
         $src = $this->manager->deliveryUrl($this->src, $baseParameters);
-        $responsive = $this->buildSrcSet($baseParameters);
+        $responsive = $this->buildSrcSet($baseParameters, $breakpoints);
         $seoAttributes = $this->seoAttributes();
         $structuredData = $this->structuredData($src, $baseParameters, $seoAttributes);
 
@@ -53,10 +55,8 @@ final class SmartImage extends Component
         return $parameters;
     }
 
-    private function buildSrcSet(array $baseParameters): array
+    private function buildSrcSet(array $baseParameters, array $breakpoints): array
     {
-        $breakpoints = config('smart-glide.breakpoints', []);
-
         if (empty($breakpoints)) {
             return ['srcset' => null, 'sizes' => null];
         }
@@ -142,6 +142,59 @@ final class SmartImage extends Component
         $filtered = array_filter($data, static fn ($value) => ! is_null($value) && $value !== '');
 
         return json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function resolveBreakpoints(): array
+    {
+        if ($this->responsive === false) {
+            return [];
+        }
+
+        if (is_array($this->responsive)) {
+            return $this->normalizeBreakpoints($this->responsive);
+        }
+
+        if (is_string($this->responsive)) {
+            $preset = config("smart-glide.responsive_sets.{$this->responsive}");
+
+            if ($preset) {
+                return $this->normalizeBreakpoints($preset);
+            }
+
+            $values = array_map('trim', explode(',', $this->responsive));
+
+            return $this->normalizeBreakpoints($values);
+        }
+
+        $defaults = config('smart-glide.breakpoints', []);
+
+        return $this->normalizeBreakpoints($defaults);
+    }
+
+    private function normalizeBreakpoints(array $values): array
+    {
+        $widths = [];
+
+        foreach ($values as $value) {
+            if (is_array($value) && isset($value['w'])) {
+                $value = $value['w'];
+            }
+
+            if (! is_numeric($value)) {
+                continue;
+            }
+
+            $int = (int) $value;
+
+            if ($int > 0) {
+                $widths[] = $int;
+            }
+        }
+
+        $widths = array_values(array_unique($widths));
+        sort($widths);
+
+        return $widths;
     }
 }
 
