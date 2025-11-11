@@ -19,8 +19,8 @@ Advanced image processing toolkit for Laravel with unified `/img` routing, respo
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 10.x, 11.x, or 12.x
+- PHP 8.3+
+- Laravel 11.x or 12.x
 - GD or Imagick PHP extension
 - League Glide 3.x (installed automatically)
 

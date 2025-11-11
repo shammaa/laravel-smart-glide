@@ -11,7 +11,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use League\Glide\Responses\LaravelResponseFactory;
+use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory;
 use RuntimeException;
@@ -95,10 +95,8 @@ final class SmartGlideManager
         $source = new Filesystem(new LocalFilesystemAdapter($sourcePath));
         $cache = new Filesystem(new LocalFilesystemAdapter($cachePath));
 
-        $responseFactory = new LaravelResponseFactory(app('request'));
-
         $this->server = ServerFactory::create([
-            'response' => $responseFactory,
+            'response' => new SymfonyResponseFactory(),
             'source' => $source,
             'cache' => $cache,
             'cache_path_prefix' => '',
