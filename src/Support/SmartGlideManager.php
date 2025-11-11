@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AppWriters\SmartGlide\Support;
+namespace Shammaa\SmartGlide\Support;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;

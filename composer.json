@@ -1,12 +1,12 @@
 {
-    "name": "appwriters/laravel-smart-glide",
+    "name": "shammaa/laravel-smart-glide",
     "description": "Advanced image processing toolkit for Laravel with unified /img routing, responsive components, and intelligent caching.",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "AppWriters",
-            "email": "team@appwriters.dev"
+            "name": "Shadi Shammaa",
+            "email": "contact@shammaa.dev"
         }
     ],
     "require": {
@@ -25,18 +25,18 @@
     },
     "autoload": {
         "psr-4": {
-            "AppWriters\\SmartGlide\\": "src/"
+            "Shammaa\\SmartGlide\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "AppWriters\\SmartGlide\\Tests\\": "tests/"
+            "Shammaa\\SmartGlide\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "AppWriters\\SmartGlide\\SmartGlideServiceProvider"
+                "Shammaa\\SmartGlide\\SmartGlideServiceProvider"
             ]
         }
     },

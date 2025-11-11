@@ -37,7 +37,7 @@ The service provider and components are auto-discovered. If you need to disable 
 ```php
 'providers' => [
     // ...
-    AppWriters\SmartGlide\SmartGlideServiceProvider::class,
+    Shammaa\SmartGlide\SmartGlideServiceProvider::class,
 ],
 ```
 

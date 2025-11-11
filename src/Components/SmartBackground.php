@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AppWriters\SmartGlide\Components;
+namespace Shammaa\SmartGlide\Components;
 
-use AppWriters\SmartGlide\Support\SmartGlideManager;
+use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\View\Component;

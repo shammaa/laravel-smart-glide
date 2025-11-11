@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AppWriters\SmartGlide\Http\Controllers;
+namespace Shammaa\SmartGlide\Http\Controllers;
 
-use AppWriters\SmartGlide\Support\SmartGlideManager;
+use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

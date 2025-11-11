@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace AppWriters\SmartGlide;
+namespace Shammaa\SmartGlide;
 
-use AppWriters\SmartGlide\Components\SmartBackground;
-use AppWriters\SmartGlide\Components\SmartImage;
-use AppWriters\SmartGlide\Http\Controllers\ImageController;
-use AppWriters\SmartGlide\Support\SmartGlideManager;
+use Shammaa\SmartGlide\Components\SmartBackground;
+use Shammaa\SmartGlide\Components\SmartImage;
+use Shammaa\SmartGlide\Http\Controllers\ImageController;
+use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
