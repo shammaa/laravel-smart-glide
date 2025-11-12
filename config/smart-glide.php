@@ -87,6 +87,52 @@ return [
             'fm' => 'webp',
             'q' => 75,
         ],
+        'hero' => [
+            'w' => 1600,
+            'h' => 900,
+            'fit' => 'crop',
+            'focus' => 'center',
+            'fm' => 'webp',
+            'q' => 80,
+        ],
+        'portrait' => [
+            'w' => 800,
+            'h' => 1200,
+            'fit' => 'crop',
+            'focus' => 'faces',
+            'fm' => 'webp',
+            'q' => 78,
+        ],
+        'square' => [
+            'w' => 600,
+            'h' => 600,
+            'fit' => 'crop',
+            'fm' => 'webp',
+            'q' => 80,
+        ],
+        'profile_photo' => [
+            'w' => 400,
+            'h' => 400,
+            'fit' => 'crop',
+            'focus' => 'faces',
+            'fm' => 'webp',
+            'q' => 82,
+        ],
+        'cover' => [
+            'w' => 2048,
+            'h' => 1152,
+            'fit' => 'crop',
+            'focus' => 'center',
+            'fm' => 'webp',
+            'q' => 85,
+        ],
+        'background' => [
+            'w' => 2560,
+            'h' => 1440,
+            'fit' => 'max',
+            'fm' => 'webp',
+            'q' => 82,
+        ],
     ],
 
     /*
@@ -130,6 +176,11 @@ return [
     'responsive_sets' => [
         'hero' => [640, 960, 1280, 1600, 1920],
         'thumbnails' => [240, 320, 480],
+        'square' => [320, 480, 640],
+        'portrait' => [480, 768, 1024],
+        'hd' => [960, 1280, 1600],
+        'fhd' => [1280, 1600, 1920, 2560],
+        'retina' => [640, 960, 1280, 1920, 2560],
     ],
 
     /*
