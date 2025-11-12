@@ -18,6 +18,10 @@ final class SmartImage extends Component
         public ?string $alt = null,
         public array $params = [],
         public ?string $class = null,
+        public ?string $style = null,
+        public ?int $width = null,
+        public ?int $height = null,
+        public ?string $aspectRatio = null,
         public array $seo = [],
         public ?bool $schema = null,
         public array|string|bool|null $responsive = null
@@ -31,6 +35,7 @@ final class SmartImage extends Component
         $src = $this->manager->deliveryUrl($this->src, $baseParameters);
         $responsive = $this->buildSrcSet($baseParameters, $breakpoints);
         $seoAttributes = $this->seoAttributes();
+        $styleAttr = $this->composeStyle($this->style, $this->aspectRatio);
         $structuredData = $this->structuredData($src, $baseParameters, $seoAttributes);
 
         return view('smart-glide::components.img', [
@@ -39,6 +44,9 @@ final class SmartImage extends Component
             'sizes' => $responsive['sizes'],
             'alt' => $this->alt,
             'class' => $this->class,
+            'style' => $styleAttr,
+            'width' => $this->width,
+            'height' => $this->height,
             'seoAttributes' => $seoAttributes,
             'structuredData' => $structuredData,
         ]);
@@ -195,6 +203,42 @@ final class SmartImage extends Component
         sort($widths);
 
         return $widths;
+    }
+
+    private function composeStyle(?string $style, ?string $aspectRatio): ?string
+    {
+        $declarations = [];
+
+        if ($style) {
+            $declarations[] = rtrim($style, ';');
+        }
+
+        if ($aspectRatio) {
+            $declarations[] = 'aspect-ratio: ' . $this->formatAspectRatio($aspectRatio);
+        }
+
+        if (empty($declarations)) {
+            return null;
+        }
+
+        return implode('; ', $declarations) . ';';
+    }
+
+    private function formatAspectRatio(string $value): string
+    {
+        if (str_contains($value, ':')) {
+            [$w, $h] = array_pad(array_map('trim', explode(':', $value, 2)), 2, '1');
+            $w = is_numeric($w) ? (float) $w : 1.0;
+            $h = is_numeric($h) ? (float) $h : 1.0;
+
+            if ($h === 0.0) {
+                $h = 1.0;
+            }
+
+            return $w . ' / ' . $h;
+        }
+
+        return $value;
     }
 }
 

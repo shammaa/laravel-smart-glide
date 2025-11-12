@@ -19,7 +19,14 @@ final class SmartPicture extends Component
         public array $params = [],
         public ?string $profile = null,
         public ?string $class = null,
+        public ?string $style = null,
+        public ?int $width = null,
+        public ?int $height = null,
         public ?string $imgClass = null,
+        public ?string $imgStyle = null,
+        public ?int $imgWidth = null,
+        public ?int $imgHeight = null,
+        public ?string $aspectRatio = null,
         public ?string $sizes = null,
         public array $seo = [],
         public ?bool $schema = null,
@@ -35,9 +42,13 @@ final class SmartPicture extends Component
         $fallbackUrl = $this->manager->deliveryUrl($this->src, $baseParameters);
         $seoAttributes = $this->seoAttributes();
         $structuredData = $this->structuredData($fallbackUrl, $baseParameters, $seoAttributes);
+        $imgStyle = $this->composeStyle($this->imgStyle, $this->aspectRatio);
 
         return view('smart-glide::components.picture', [
             'class' => $this->class,
+            'style' => $this->style,
+            'width' => $this->width,
+            'height' => $this->height,
             'sources' => $this->buildSourceEntries(),
             'img' => [
                 'src' => $fallbackUrl,
@@ -45,6 +56,9 @@ final class SmartPicture extends Component
                 'sizes' => $this->sizes ?? $fallbackSrcSet['sizes'],
                 'alt' => $this->alt,
                 'class' => $this->imgClass,
+                'style' => $imgStyle,
+                'width' => $this->imgWidth ?? $this->width,
+                'height' => $this->imgHeight ?? $this->height,
                 'seoAttributes' => $seoAttributes,
             ],
             'structuredData' => $structuredData,
@@ -261,6 +275,42 @@ final class SmartPicture extends Component
         $filtered = array_filter($data, static fn ($value) => ! is_null($value) && $value !== '');
 
         return json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function composeStyle(?string $style, ?string $aspectRatio): ?string
+    {
+        $declarations = [];
+
+        if ($style) {
+            $declarations[] = rtrim($style, ';');
+        }
+
+        if ($aspectRatio) {
+            $declarations[] = 'aspect-ratio: ' . $this->formatAspectRatio($aspectRatio);
+        }
+
+        if (empty($declarations)) {
+            return null;
+        }
+
+        return implode('; ', $declarations) . ';';
+    }
+
+    private function formatAspectRatio(string $value): string
+    {
+        if (str_contains($value, ':')) {
+            [$w, $h] = array_pad(array_map('trim', explode(':', $value, 2)), 2, '1');
+            $w = is_numeric($w) ? (float) $w : 1.0;
+            $h = is_numeric($h) ? (float) $h : 1.0;
+
+            if ($h === 0.0) {
+                $h = 1.0;
+            }
+
+            return $w . ' / ' . $h;
+        }
+
+        return $value;
     }
 }
 

@@ -98,6 +98,8 @@ Render responsive `<img>` tags with minimal boilerplate.
     profile="hero"
     alt="Product hero image"
     class="rounded-xl shadow-lg"
+    style="display:block"
+    aspect-ratio="16:9"
     :params="['fit' => 'crop', 'focus' => 'center']"
     :seo="[
         'fetchpriority' => 'high',
@@ -115,6 +117,9 @@ Render responsive `<img>` tags with minimal boilerplate.
 | `src` | string | Relative path (inside `smart-glide.source`). |
 | `profile` | string | Apply a config profile (`profiles.hero`). |
 | `params` | array | Additional Glide parameters (width, height, etc.). |
+| `style` | string | Inline styles applied to `<img>`. |
+| `aspect-ratio` | string | Aspect ratio hint (e.g. `16:9`, `1.5`). |
+| `width` / `height` | int | Native dimension attributes for layout stability. |
 | `seo` | array | Extra HTML attributes (`fetchpriority`, `title`, `itemprop`, …). |
 | `schema` | bool | Force JSON-LD emission for this image only. |
 
@@ -173,6 +178,7 @@ Responsive `<picture>` helper that lets you define multiple `<source>` breakpoin
     src="gallery/feature.jpg"
     alt="Feature image"
     class="feature-picture"
+    aspect-ratio="1:1"
     :sources="[
         ['media' => '(min-width: 1200px)', 'widths' => [1200], 'params' => ['fit' => 'crop', 'w' => 1200, 'h' => 675]],
         ['media' => '(min-width: 768px)', 'widths' => [900], 'params' => ['w' => 900, 'h' => 506]],
@@ -192,6 +198,10 @@ Each source entry accepts:
 | `sizes` | Custom `sizes` attribute. |
 | `type` | MIME type hint for the source. |
 | `srcset` | Custom array of descriptors if you need full control. |
+| `img-class` / `img-style` | Styling for the fallback `<img>`. |
+| `img-width` / `img-height` | Native width/height attributes on fallback `<img>`. |
+| `width` / `height` | Set attributes on the wrapping `<picture>`. |
+| `aspect-ratio` | Sets CSS `aspect-ratio` on fallback `<img>`. |
 
 The internal `<img>` fallback inherits Smart Glide features (SEO attributes, structured data, signed URLs) and can be styled separately via `img-class`.
 
