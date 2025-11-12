@@ -121,6 +121,39 @@ The config file (`config/smart-glide.php`) exposes several groups:
 
 ---
 
+### Default Profiles & Responsive Sets
+
+**Profiles (`config('smart-glide.profiles')`)**
+
+| Name | Description |
+| --- | --- |
+| `default` | Outputs WebP at quality 82. |
+| `thumbnail` | 320×320 crop for avatars or cards. |
+| `hero` | 1600×900 centered crop for hero banners. |
+| `portrait` | 800×1200 crop prioritising faces. |
+| `square` | 600×600 crop for grids. |
+| `profile_photo` | 400×400 crop focused on faces (avatars). |
+| `cover` | 2048×1152 crop suitable for cover art. |
+| `background` | 2560×1440 max-fit background-friendly rendition. |
+
+Use them via `profile="hero"` or override/add more in your config file.
+
+**Responsive sets (`config('smart-glide.responsive_sets')`)**
+
+| Name | Widths |
+| --- | --- |
+| `hero` | 640, 960, 1280, 1600, 1920 |
+| `thumbnails` | 240, 320, 480 |
+| `square` | 320, 480, 640 |
+| `portrait` | 480, 768, 1024 |
+| `hd` | 960, 1280, 1600 |
+| `fhd` | 1280, 1600, 1920, 2560 |
+| `retina` | 640, 960, 1280, 1920, 2560 |
+
+Reference them with `responsive="retina"` or specify an inline array.
+
+---
+
 ## Blade Components
 
 ### `<x-smart-glide-img>`
