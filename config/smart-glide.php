@@ -11,7 +11,7 @@ return [
     | directory. Update this to match your project's structure.
     |
     */
-    'source' => env('SMART_GLIDE_SOURCE', resource_path('assets/images')),
+    'source' => env('SMART_GLIDE_SOURCE', storage_path('app/public')),
 
     /*
     |--------------------------------------------------------------------------
