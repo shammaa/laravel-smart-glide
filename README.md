@@ -164,6 +164,37 @@ Responsive background helper with media queries and placeholders.
 
 The component outputs a wrapper `<div>` with inline styles plus an optional `<style>` block for breakpoint-specific backgrounds. A blurred placeholder overlay is included when `lazy` is `true`.
 
+### `<x-smart-glide-picture>`
+
+Responsive `<picture>` helper that lets you define multiple `<source>` breakpoints and a Smart Glide powered fallback.
+
+```blade
+<x-smart-glide-picture
+    src="gallery/feature.jpg"
+    alt="Feature image"
+    class="feature-picture"
+    :sources="[
+        ['media' => '(min-width: 1200px)', 'widths' => [1200], 'params' => ['fit' => 'crop', 'w' => 1200, 'h' => 675]],
+        ['media' => '(min-width: 768px)', 'widths' => [900], 'params' => ['w' => 900, 'h' => 506]],
+    ]"
+/>
+```
+
+Each source entry accepts:
+
+| Key | Description |
+| --- | ----------- |
+| `media` | Optional media query for the `<source>` tag. |
+| `src` | Override image path for this source (defaults to component `src`). |
+| `params` | Glide parameters merged with the base parameters. |
+| `profile` | Profile name to merge with parameters. |
+| `widths` / `responsive` | Array or preset used to generate the `srcset`. |
+| `sizes` | Custom `sizes` attribute. |
+| `type` | MIME type hint for the source. |
+| `srcset` | Custom array of descriptors if you need full control. |
+
+The internal `<img>` fallback inherits Smart Glide features (SEO attributes, structured data, signed URLs) and can be styled separately via `img-class`.
+
 ---
 
 ## Signing & Security

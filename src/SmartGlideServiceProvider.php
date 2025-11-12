@@ -6,6 +6,7 @@ namespace Shammaa\SmartGlide;
 
 use Shammaa\SmartGlide\Components\SmartBackground;
 use Shammaa\SmartGlide\Components\SmartImage;
+use Shammaa\SmartGlide\Components\SmartPicture;
 use Shammaa\SmartGlide\Http\Controllers\ImageController;
 use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\Container\Container;
@@ -56,6 +57,7 @@ final class SmartGlideServiceProvider extends ServiceProvider
     {
         Blade::component('smart-glide-img', SmartImage::class);
         Blade::component('smart-glide-bg', SmartBackground::class);
+        Blade::component('smart-glide-picture', SmartPicture::class);
     }
 }
 
