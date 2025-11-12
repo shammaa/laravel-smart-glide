@@ -332,6 +332,14 @@ php artisan smart-glide:clear-cache
 
 *(Command scaffolding is not bundled yet; feel free to implement it following your workflow.)*
 
+### Scheduled Cache Purge
+
+The package now ships with a built-in Artisan command and scheduler hook:
+
+- Configure the daily purge time via `SMART_GLIDE_CACHE_PURGE_TIME` (default `03:00`).
+- Smart Glide registers `smart-glide:clear-cache` automatically; when the scheduler is enabled (`php artisan schedule:run`), cached renditions are cleared daily at the configured time.
+- Run manually with `php artisan smart-glide:clear-cache --force`.
+
 ---
 
 ## Testing
