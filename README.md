@@ -101,6 +101,59 @@ Opening the returned URL in a browser should yield the processed image (HTTP 200
 
 ---
 
+### Facade Usage
+
+Resolve URLs anywhere in your Laravel app through the `SmartGlide` facade. This is convenient for tables, JSON APIs, or Livewire components where you need pre-signed image URLs without rendering Blade components.
+
+```php
+use Shammaa\SmartGlide\Facades\SmartGlide;
+
+$url = SmartGlide::croppedUrl(
+    path: 'team/photo.jpg',
+    width: 160,
+    height: 160,
+    parameters: [
+        'profile' => 'thumbnail', // merges preset params (quality, format, etc.)
+        'focus' => 'faces',       // any additional Glide parameters
+    ],
+);
+```
+
+In a DataTable JSON feed:
+
+```php
+return TeamMember::query()
+    ->select(['id', 'name', 'photo_path'])
+    ->get()
+    ->map(fn ($member) => [
+        'id' => $member->id,
+        'name' => $member->name,
+        'photo' => SmartGlide::croppedUrl($member->photo_path, 96, 96, [
+            'profile' => 'thumbnail',
+        ]),
+    ]);
+```
+
+Then render it in JavaScript:
+
+```javascript
+$('#team-table').DataTable({
+    columns: [
+        { data: 'name' },
+        {
+            data: 'photo',
+            render: (data, type, row) => type === 'display'
+                ? `<img src="${data}" alt="${row.name}" class="h-12 w-12 rounded-full object-cover" />`
+                : data,
+            orderable: false,
+            searchable: false,
+        },
+    ],
+});
+```
+
+---
+
 ## Configuration Overview
 
 The config file (`config/smart-glide.php`) exposes several groups:
