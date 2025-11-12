@@ -327,6 +327,32 @@ Each source entry accepts:
 
 The internal `<img>` fallback inherits Smart Glide features (SEO attributes, structured data, signed URLs) and can be styled separately via `img-class`.
 
+#### Picture Presets
+
+Skip repeating `:sources="[]"` arrays in every template by defining presets in `config('smart-glide.picture_presets')`:
+
+```php
+'picture_presets' => [
+    'feature' => [
+        ['media' => '(min-width: 1200px)', 'widths' => [1200], 'params' => ['fit' => 'crop', 'w' => 1200, 'h' => 675]],
+        ['media' => '(min-width: 768px)', 'widths' => [900], 'params' => ['fit' => 'crop', 'w' => 900, 'h' => 506]],
+    ],
+],
+```
+
+Use the preset in Blade:
+
+```blade
+<x-smart-glide-picture
+    preset="feature"
+    src="{{ $article->featured_image }}"
+    alt="{{ $article->title }}"
+    aspect-ratio="16:9"
+/>
+```
+
+You can still pass `:sources="[]"` along with a preset; they will be appended for page-specific overrides.
+
 ---
 
 ## Signing & Security
