@@ -45,7 +45,10 @@
         "laravel": {
             "providers": [
                 "Shammaa\\SmartGlide\\SmartGlideServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "SmartGlide": "Shammaa\\SmartGlide\\Facades\\SmartGlide"
+            }
         }
     },
     "minimum-stability": "stable",

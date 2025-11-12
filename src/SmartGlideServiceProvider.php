@@ -27,6 +27,8 @@ final class SmartGlideServiceProvider extends ServiceProvider
                 $container->make('cache.store')
             );
         });
+
+        $this->app->alias(SmartGlideManager::class, 'smart-glide');
     }
 
     public function boot(): void

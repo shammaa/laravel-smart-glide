@@ -64,6 +64,11 @@ final class SmartGlideManager
         return $response;
     }
 
+    public function url(string $path, array $parameters = []): string
+    {
+        return $this->deliveryUrl($path, $parameters);
+    }
+
     public function deliveryUrl(string $path, array $parameters = []): string
     {
         $normalizedPath = $this->normalizePath($path);
@@ -79,6 +84,20 @@ final class SmartGlideManager
         $relative = sprintf('%s/%s%s', $base, $normalizedPath, $query ? '?' . $query : '');
 
         return url($relative);
+    }
+
+    public function croppedUrl(string $path, int $width, int $height, array $parameters = []): string
+    {
+        $cropDefaults = [
+            'w' => $width,
+            'h' => $height,
+        ];
+
+        if (! array_key_exists('fit', $parameters)) {
+            $cropDefaults['fit'] = 'crop';
+        }
+
+        return $this->deliveryUrl($path, array_merge($cropDefaults, $parameters));
     }
 
     private function initialize(): void
