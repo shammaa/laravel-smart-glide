@@ -195,6 +195,7 @@ return [
     'cache_strategy' => [
         'max_size_mb' => env('SMART_GLIDE_CACHE_MAX_MB', 1024),
         'lru_window' => env('SMART_GLIDE_CACHE_LRU_WINDOW', 14), // days
+        'purge_time' => env('SMART_GLIDE_CACHE_PURGE_TIME', '03:00'),
     ],
 
     /*

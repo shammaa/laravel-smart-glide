@@ -7,6 +7,7 @@ namespace Shammaa\SmartGlide;
 use Shammaa\SmartGlide\Components\SmartBackground;
 use Shammaa\SmartGlide\Components\SmartImage;
 use Shammaa\SmartGlide\Components\SmartPicture;
+use Shammaa\SmartGlide\Console\ClearSmartGlideCache;
 use Shammaa\SmartGlide\Http\Controllers\ImageController;
 use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\Container\Container;
@@ -58,6 +59,27 @@ final class SmartGlideServiceProvider extends ServiceProvider
         Blade::component('smart-glide-img', SmartImage::class);
         Blade::component('smart-glide-bg', SmartBackground::class);
         Blade::component('smart-glide-picture', SmartPicture::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ClearSmartGlideCache::class,
+            ]);
+
+            $this->scheduleCachePurge();
+        }
+    }
+
+    private function scheduleCachePurge(): void
+    {
+        $purgeTime = config('smart-glide.cache_strategy.purge_time');
+
+        if (! $purgeTime || ! class_exists(\Illuminate\Console\Scheduling\Schedule::class)) {
+            return;
+        }
+
+        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule) use ($purgeTime): void {
+            $schedule->command('smart-glide:clear-cache --force')->dailyAt($purgeTime);
+        });
     }
 }
 
