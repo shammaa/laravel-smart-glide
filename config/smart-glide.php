@@ -185,6 +185,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Picture Source Presets
+    |--------------------------------------------------------------------------
+    |
+    | Pre-configure responsive `<x-smart-glide-picture>` source stacks.
+    | Reference them from the component via `preset="feature"` instead of
+    | repeating the `:sources="[]"` array in every view.
+    |
+    */
+    'picture_presets' => [
+        'feature' => [
+            [
+                'media' => '(min-width: 1200px)',
+                'widths' => [1200],
+                'params' => ['fit' => 'crop', 'w' => 1200, 'h' => 675],
+            ],
+            [
+                'media' => '(min-width: 768px)',
+                'widths' => [900],
+                'params' => ['fit' => 'crop', 'w' => 900, 'h' => 506],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Strategy
     |--------------------------------------------------------------------------
     |

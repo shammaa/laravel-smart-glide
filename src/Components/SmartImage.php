@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Shammaa\SmartGlide\Components;
 
-use Shammaa\SmartGlide\Support\SmartGlideManager;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Component;
+use Shammaa\SmartGlide\Support\SmartGlideManager;
 
 final class SmartImage extends Component
 {
@@ -28,7 +29,7 @@ final class SmartImage extends Component
     ) {
     }
 
-    public function render(): View
+    public function render(): View|HtmlString
     {
         $baseParameters = $this->buildParameters();
         $breakpoints = $this->resolveBreakpoints();
@@ -37,6 +38,21 @@ final class SmartImage extends Component
         $seoAttributes = $this->seoAttributes();
         $styleAttr = $this->composeStyle($this->style, $this->aspectRatio);
         $structuredData = $this->structuredData($src, $baseParameters, $seoAttributes);
+
+        if ($this->shouldRenderInline()) {
+            return $this->renderInlineImage(
+                src: $src,
+                srcset: $responsive['srcset'],
+                sizes: $responsive['sizes'],
+                alt: $this->alt,
+                class: $this->class,
+                style: $styleAttr,
+                width: $this->width,
+                height: $this->height,
+                seoAttributes: $seoAttributes,
+                structuredData: $structuredData,
+            );
+        }
 
         return view('smart-glide::components.img', [
             'src' => $src,
@@ -239,6 +255,73 @@ final class SmartImage extends Component
         }
 
         return $value;
+    }
+
+    private function shouldRenderInline(): bool
+    {
+        $factory = app('view');
+
+        if (! method_exists($factory, 'exists') || ! $factory->exists('smart-glide::components.img')) {
+            return true;
+        }
+
+        $finder = method_exists($factory, 'getFinder') ? $factory->getFinder() : null;
+
+        if (! $finder) {
+            return false;
+        }
+
+        try {
+            $path = $finder->find('smart-glide::components.img');
+        } catch (\InvalidArgumentException) {
+            return true;
+        }
+
+        if (! $path || ! is_file($path)) {
+            return true;
+        }
+
+        return filesize($path) === 0;
+    }
+
+    private function renderInlineImage(
+        string $src,
+        ?string $srcset,
+        ?string $sizes,
+        ?string $alt,
+        ?string $class,
+        ?string $style,
+        ?int $width,
+        ?int $height,
+        array $seoAttributes,
+        ?string $structuredData
+    ): HtmlString {
+        $attributes = array_merge(
+            [
+                'src' => $src,
+                'alt' => $alt ?? '',
+                'width' => $width,
+                'height' => $height,
+                'class' => $class,
+                'style' => $style,
+                'srcset' => $srcset,
+                'sizes' => $sizes,
+            ],
+            $seoAttributes
+        );
+
+        $attributeString = collect($attributes)
+            ->filter(static fn ($value) => ! is_null($value) && $value !== '')
+            ->map(static fn ($value, $attribute) => sprintf('%s="%s"', $attribute, e($value)))
+            ->implode(' ');
+
+        $html = '<img ' . $attributeString . ' />';
+
+        if ($structuredData) {
+            $html .= '<script type="application/ld+json">' . $structuredData . '</script>';
+        }
+
+        return new HtmlString($html);
     }
 }
 

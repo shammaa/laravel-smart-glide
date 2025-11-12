@@ -246,6 +246,10 @@ Render responsive `<img>` tags with minimal boilerplate.
 
 Structured data respects component-level overrides and merges extra fields from `config('smart-glide.seo.structured_data.fields')`.
 
+#### View Overrides & Fallback Rendering
+
+When you publish the package views, make sure `resources/views/vendor/smart-glide/components/img.blade.php` is kept in sync with the version shipped by the package. If it is removed or left empty, the component now falls back to rendering the `<img>` tag inline, so URLs remain signed even with an incomplete override. You can safely delete the override to restore the default template.
+
 #### How `srcset` Is Generated
 
 - Smart Glide reads breakpoint widths from `config('smart-glide.breakpoints')` by default.

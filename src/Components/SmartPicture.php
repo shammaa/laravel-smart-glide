@@ -16,6 +16,7 @@ final class SmartPicture extends Component
         public string $src,
         public array $sources = [],
         public ?string $alt = null,
+        public ?string $preset = null,
         public array $params = [],
         public ?string $profile = null,
         public ?string $class = null,
@@ -65,9 +66,28 @@ final class SmartPicture extends Component
         ]);
     }
 
+    private function resolveSources(): array
+    {
+        $resolved = [];
+
+        if ($this->preset) {
+            $presetSources = config("smart-glide.picture_presets.{$this->preset}", []);
+
+            if (is_array($presetSources)) {
+                $resolved = array_merge($resolved, $presetSources);
+            }
+        }
+
+        if (! empty($this->sources)) {
+            $resolved = array_merge($resolved, $this->sources);
+        }
+
+        return $resolved;
+    }
+
     private function buildSourceEntries(): array
     {
-        return collect($this->sources)->map(function ($source) {
+        return collect($this->resolveSources())->map(function ($source) {
             if (is_string($source)) {
                 $source = ['src' => $source];
             }
