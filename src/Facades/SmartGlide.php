@@ -22,7 +22,7 @@ final class SmartGlide extends Facade
     /**
      * @return SmartGlideManager
      */
-    protected static function getFacadeRoot()
+    public static function getFacadeRoot()
     {
         return parent::getFacadeRoot();
     }
