@@ -461,5 +461,5 @@ Contributions and issues are welcome once the package is public.
 
 ## License
 
-Released under the [MIT License](LICENSE.md).
+Released under the [MIT License](LICENSE).
 

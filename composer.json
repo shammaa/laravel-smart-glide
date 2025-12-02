@@ -2,7 +2,26 @@
     "name": "shammaa/laravel-smart-glide",
     "description": "Advanced image processing toolkit for Laravel with unified /img routing, responsive components, and intelligent caching.",
     "type": "library",
+    "keywords": [
+        "laravel",
+        "image-processing",
+        "glide",
+        "responsive-images",
+        "image-optimization",
+        "webp",
+        "avif",
+        "blade-components",
+        "image-manipulation",
+        "cdn",
+        "cache",
+        "seo"
+    ],
     "license": "MIT",
+    "homepage": "https://github.com/shammaa/laravel-smart-glide",
+    "support": {
+        "issues": "https://github.com/shammaa/laravel-smart-glide/issues",
+        "source": "https://github.com/shammaa/laravel-smart-glide"
+    },
     "authors": [
         {
             "name": "Shadi Shammaa",
@@ -24,12 +43,6 @@
         "illuminate/testing": "^11.0|^12.0",
         "orchestra/testbench": "^10.0"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/shammaa/laravel-smart-glide"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "Shammaa\\SmartGlide\\": "src/"
@@ -40,7 +53,6 @@
             "Shammaa\\SmartGlide\\Tests\\": "tests/"
         }
     },
-    
     "extra": {
         "laravel": {
             "providers": [
