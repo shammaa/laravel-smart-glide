@@ -11,6 +11,8 @@ use Shammaa\SmartGlide\Support\SmartGlideManager;
  * @method static string url(string $path, array $parameters = [])
  * @method static string deliveryUrl(string $path, array $parameters = [])
  * @method static string croppedUrl(string $path, int $width, int $height, array $parameters = [])
+ * @method static string placeholderUrl(string $path, array $parameters = [])
+ * @method static string placeholder(string $path, array $parameters = [])
  */
 final class SmartGlide extends Facade
 {

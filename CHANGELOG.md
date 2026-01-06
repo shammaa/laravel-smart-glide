@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2026-01-06
 
-## [1.0.0] - 2024-01-01
+### Added
+- **WebP/AVIF Auto-Negotiation**: Automatically serves the best format based on browser `Accept` headers.
+- **LQIP (Blur-up) Placeholders**: Added `placeholder()` and `placeholderUrl()` methods for smooth loading.
+- **CDN Integration**: Support for custom CDN domains in image URLs.
+- **Throttled Cache Budgeting**: Optimized performance by reducing disk I/O during cache checks.
+- **Manifest Synchronization**: CLI `clear-cache` now properly clears the manifest from the cache store.
+
+## [2.0.0] - 2025-12-30
 
 ### Added
 - Initial release

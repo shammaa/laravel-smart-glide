@@ -39,7 +39,12 @@ final class ClearSmartGlideCache extends Command
         $filesystem->deleteDirectory($cachePath);
         $filesystem->makeDirectory($cachePath);
 
-        $this->info('Smart Glide cache cleared.');
+        // Clear manifest from cache store
+        if (app()->bound('cache.store')) {
+            app('cache.store')->forget('smart_glide_manifest');
+        }
+
+        $this->info('Smart Glide cache and manifest cleared.');
 
         return self::SUCCESS;
     }

@@ -37,6 +37,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CDN Domain
+    |--------------------------------------------------------------------------
+    |
+    | If your images are served through a CDN (like Cloudflare, CloudFront),
+    | define the domain here. Delivery URLs will point to this domain.
+    |
+    */
+    'cdn_url' => env('SMART_GLIDE_CDN_URL', null),
+
+    /*
+    |--------------------------------------------------------------------------
     | Secure URL Signing
     |--------------------------------------------------------------------------
     |
@@ -64,6 +75,8 @@ return [
         'min_quality' => env('SMART_GLIDE_MIN_QUALITY', 20),
         'max_quality' => env('SMART_GLIDE_MAX_QUALITY', 95),
         'allow_remote_images' => env('SMART_GLIDE_ALLOW_REMOTE', false),
+        'auto_format' => env('SMART_GLIDE_AUTO_FORMAT', true), // Pick WebP/AVIF automatically
+        'lqip_blur' => env('SMART_GLIDE_LQIP_BLUR', 30),      // Blur intensity for placeholders
     ],
 
     /*

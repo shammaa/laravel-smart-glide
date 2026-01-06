@@ -23,6 +23,8 @@ final class SmartGlideManager
 
     private array $profiles;
 
+    private static int $checksPerformed = 0;
+
     public function __construct(
         private readonly array $config,
         private readonly CacheRepository $cache
@@ -38,6 +40,11 @@ final class SmartGlideManager
         $normalizedPath = $this->normalizePath($path);
 
         $parameters = $this->applyProfiles($query);
+
+        // 1. Auto-negotiation (WebP/AVIF)
+        if ($this->shouldAutoFormat($parameters)) {
+            $parameters['fm'] = $this->negotiateFormat($request);
+        }
 
         if ($this->shouldSecure()) {
             $this->validateSignature($normalizedPath, $parameters, $query);
@@ -83,6 +90,11 @@ final class SmartGlideManager
 
         $relative = sprintf('%s/%s%s', $base, $normalizedPath, $query ? '?' . $query : '');
 
+        $cdnUrl = $this->config['cdn_url'] ?? null;
+        if ($cdnUrl) {
+            return rtrim($cdnUrl, '/') . $relative;
+        }
+
         return url($relative);
     }
 
@@ -98,6 +110,48 @@ final class SmartGlideManager
         }
 
         return $this->deliveryUrl($path, array_merge($cropDefaults, $parameters));
+    }
+
+    public function placeholderUrl(string $path, array $parameters = []): string
+    {
+        $params = array_merge([
+            'w' => 32,
+            'h' => 32,
+            'fit' => 'crop',
+            'blur' => $this->config['security']['lqip_blur'] ?? 30,
+            'fm' => 'webp',
+            'q' => 20,
+        ], $parameters);
+
+        return $this->deliveryUrl($path, $params);
+    }
+
+    public function placeholder(string $path, array $parameters = []): string
+    {
+        $params = array_merge([
+            'w' => 32,
+            'h' => 32,
+            'fit' => 'crop',
+            'blur' => $this->config['security']['lqip_blur'] ?? 30,
+            'fm' => 'webp',
+            'q' => 20,
+        ], $parameters);
+
+        $cacheKey = 'smart_glide_lqip:' . md5($path . json_encode($params));
+
+        return $this->cache->remember($cacheKey, now()->addYear(), function () use ($path, $params) {
+            $raw = $this->server->makeImage($path, $params);
+            $cachePath = $this->config['cache'] . DIRECTORY_SEPARATOR . $raw;
+
+            if (! file_exists($cachePath)) {
+                return '';
+            }
+
+            $content = file_get_contents($cachePath);
+            $type = 'image/' . ($params['fm'] ?? 'webp');
+
+            return 'data:' . $type . ';base64,' . base64_encode((string) $content);
+        });
     }
 
     private function initialize(): void
@@ -236,6 +290,31 @@ final class SmartGlideManager
     private function allowRemoteImages(): bool
     {
         return (bool) ($this->config['security']['allow_remote_images'] ?? false);
+    }
+
+    private function shouldAutoFormat(array $parameters): bool
+    {
+        // Don't override if user explicitly asked for a format
+        if (isset($parameters['fm'])) {
+            return false;
+        }
+
+        return (bool) ($this->config['security']['auto_format'] ?? true);
+    }
+
+    private function negotiateFormat(Request $request): string
+    {
+        $accept = $request->header('Accept', '');
+
+        if (str_contains($accept, 'image/avif')) {
+            return 'avif';
+        }
+
+        if (str_contains($accept, 'image/webp')) {
+            return 'webp';
+        }
+
+        return 'jpg';
     }
 
     private function generateSignature(string $path, array $parameters): string
@@ -405,6 +484,12 @@ final class SmartGlideManager
         $cachePath = $this->config['cache'] ?? null;
 
         if ($maxSize <= 0 || ! $cachePath || ! is_dir($cachePath)) {
+            return;
+        }
+
+        // Only check every 20 additions to save I/O
+        self::$checksPerformed++;
+        if (self::$checksPerformed % 20 !== 0) {
             return;
         }
 
