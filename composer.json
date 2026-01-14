@@ -17,7 +17,6 @@
         "seo"
     ],
     "license": "MIT",
-    "version": "2.0.0",
     "homepage": "https://github.com/shammaa/laravel-smart-glide",
     "support": {
         "issues": "https://github.com/shammaa/laravel-smart-glide/issues",
@@ -72,4 +71,3 @@
     "minimum-stability": "stable",
     "prefer-stable": true
 }
-
