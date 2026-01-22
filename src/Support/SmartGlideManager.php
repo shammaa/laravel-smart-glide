@@ -551,6 +551,96 @@ final class SmartGlideManager
         return $cachePath . DIRECTORY_SEPARATOR . ltrim($entry['cache_file'], DIRECTORY_SEPARATOR);
     }
 
+    public function responsiveData(string $path, ?string $profile = null, array $parameters = [], array|string|bool|null $responsive = null): array
+    {
+        $baseParameters = $parameters;
+        if ($profile) {
+            $baseParameters['profile'] = $profile;
+        }
+
+        $appliedParameters = $this->applyProfiles($baseParameters);
+        $breakpoints = $this->resolveBreakpoints($responsive);
+        
+        $src = $this->deliveryUrl($path, $baseParameters);
+        
+        $srcset = null;
+        $sizes = null;
+
+        if (!empty($breakpoints)) {
+            $entries = [];
+            foreach ($breakpoints as $width) {
+                $params = array_merge($baseParameters, ['w' => $width]);
+                $entries[] = sprintf('%s %dw', $this->deliveryUrl($path, $params), $width);
+            }
+            $srcset = implode(', ', $entries);
+            $sizes = implode(', ', array_map(
+                static fn (int $width): string => "(max-width: {$width}px) 100vw",
+                $breakpoints
+            ));
+        }
+
+        return [
+            'src' => $src,
+            'srcset' => $srcset,
+            'sizes' => $sizes,
+            'widths' => $breakpoints,
+            'parameters' => $appliedParameters,
+        ];
+    }
+
+    public function resolveBreakpoints(array|string|bool|null $responsive = null): array
+    {
+        if ($responsive === false) {
+            return [];
+        }
+
+        if (is_array($responsive)) {
+            return $this->normalizeBreakpoints($responsive);
+        }
+
+        if (is_string($responsive)) {
+            $preset = $this->config['responsive_sets'][$responsive] ?? null;
+
+            if ($preset) {
+                return $this->normalizeBreakpoints($preset);
+            }
+
+            $values = array_map('trim', explode(',', $responsive));
+
+            return $this->normalizeBreakpoints($values);
+        }
+
+        $defaults = $this->config['breakpoints'] ?? [];
+
+        return $this->normalizeBreakpoints($defaults);
+    }
+
+    private function normalizeBreakpoints(array $values): array
+    {
+        $widths = [];
+
+        foreach ($values as $value) {
+            if (is_array($value) && isset($value['w'])) {
+                $value = $value['w'];
+            }
+
+            if (! is_numeric($value)) {
+                continue;
+            }
+
+            $int = (int) $value;
+
+            if ($int > 0) {
+                $widths[] = $int;
+            }
+        }
+
+        $widths = array_values(array_unique($widths));
+        sort($widths);
+
+        return $widths;
+    }
+
     private function manifestKey(string $path, array $parameters): string
     {
         return 'smart_glide_meta:' . md5($path . json_encode($parameters));

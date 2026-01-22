@@ -152,6 +152,52 @@ $('#team-table').DataTable({
 });
 ```
 
+### Headless & API Usage (React / Vue)
+
+Smart Glide provides a dedicated method to extract all responsive data as a plain array. This is ideal for JSON APIs (Laravel Resources), Inertia.js, or hybrid stacks where you need to render images in React, Vue, or mobile apps.
+
+```php
+use Shammaa\SmartGlide\Facades\SmartGlide;
+
+// In a Laravel Controller or Resource
+$imageData = SmartGlide::responsiveData(
+    path: 'products/phone.jpg',
+    profile: 'thumbnail',
+    responsive: 'retina' // or [320, 640, 960]
+);
+
+return response()->json([
+    'product_title' => 'Awesome Phone',
+    'image' => $imageData
+]);
+```
+
+The `responsiveData()` method returns an array structured for easy consumption:
+
+```json
+{
+  "src": "/img/products/phone.jpg?profile=thumbnail&s=...",
+  "srcset": "/img/products/phone.jpg?w=640&... 640w, /img/products/phone.jpg?w=960&... 960w, ...",
+  "sizes": "(max-width: 640px) 100vw, (max-width: 960px) 100vw, ...",
+  "widths": [640, 960, 1280, 1920, 2560]
+}
+```
+
+#### Consumption in React/Vue
+
+Simply bind the returned attributes to your `<img>` tag:
+
+```jsx
+// React / Vue Example
+<img 
+  src={image.src} 
+  srcSet={image.srcset} 
+  sizes={image.sizes} 
+  alt={title}
+  loading="lazy"
+/>
+```
+
 ---
 
 ## Configuration Overview

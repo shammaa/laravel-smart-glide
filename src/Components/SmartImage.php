@@ -31,13 +31,17 @@ final class SmartImage extends Component
 
     public function render(): View|HtmlString
     {
-        $baseParameters = $this->buildParameters();
-        $breakpoints = $this->resolveBreakpoints();
-        $src = $this->manager->deliveryUrl($this->src, $baseParameters);
-        $responsive = $this->buildSrcSet($baseParameters, $breakpoints);
+        $responsive = $this->manager->responsiveData(
+            path: $this->src,
+            profile: $this->profile,
+            parameters: $this->params,
+            responsive: $this->responsive
+        );
+
+        $src = $responsive['src'];
         $seoAttributes = $this->seoAttributes();
         $styleAttr = $this->composeStyle($this->style, $this->aspectRatio);
-        $structuredData = $this->structuredData($src, $baseParameters, $seoAttributes);
+        $structuredData = $this->structuredData($src, $responsive['parameters'], $seoAttributes);
 
         if ($this->shouldRenderInline()) {
             return $this->renderInlineImage(
@@ -66,39 +70,6 @@ final class SmartImage extends Component
             'seoAttributes' => $seoAttributes,
             'structuredData' => $structuredData,
         ]);
-    }
-
-    private function buildParameters(): array
-    {
-        $parameters = $this->params;
-
-        if ($this->profile) {
-            $parameters['profile'] = $this->profile;
-        }
-
-        return $parameters;
-    }
-
-    private function buildSrcSet(array $baseParameters, array $breakpoints): array
-    {
-        if (empty($breakpoints)) {
-            return ['srcset' => null, 'sizes' => null];
-        }
-
-        $entries = [];
-
-        foreach ($breakpoints as $label => $width) {
-            $params = array_merge($baseParameters, ['w' => $width]);
-            $entries[] = sprintf('%s %dw', $this->manager->deliveryUrl($this->src, $params), $width);
-        }
-
-        return [
-            'srcset' => implode(', ', $entries),
-            'sizes' => implode(', ', array_map(
-                static fn (int $width): string => "(max-width: {$width}px) 100vw",
-                $breakpoints
-            )),
-        ];
     }
 
     private function seoAttributes(): array
@@ -166,59 +137,6 @@ final class SmartImage extends Component
         $filtered = array_filter($data, static fn ($value) => ! is_null($value) && $value !== '');
 
         return json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
-
-    private function resolveBreakpoints(): array
-    {
-        if ($this->responsive === false) {
-            return [];
-        }
-
-        if (is_array($this->responsive)) {
-            return $this->normalizeBreakpoints($this->responsive);
-        }
-
-        if (is_string($this->responsive)) {
-            $preset = config("smart-glide.responsive_sets.{$this->responsive}");
-
-            if ($preset) {
-                return $this->normalizeBreakpoints($preset);
-            }
-
-            $values = array_map('trim', explode(',', $this->responsive));
-
-            return $this->normalizeBreakpoints($values);
-        }
-
-        $defaults = config('smart-glide.breakpoints', []);
-
-        return $this->normalizeBreakpoints($defaults);
-    }
-
-    private function normalizeBreakpoints(array $values): array
-    {
-        $widths = [];
-
-        foreach ($values as $value) {
-            if (is_array($value) && isset($value['w'])) {
-                $value = $value['w'];
-            }
-
-            if (! is_numeric($value)) {
-                continue;
-            }
-
-            $int = (int) $value;
-
-            if ($int > 0) {
-                $widths[] = $int;
-            }
-        }
-
-        $widths = array_values(array_unique($widths));
-        sort($widths);
-
-        return $widths;
     }
 
     private function composeStyle(?string $style, ?string $aspectRatio): ?string
