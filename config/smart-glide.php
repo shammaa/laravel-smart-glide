@@ -48,6 +48,47 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Headless JSON API  (React / Next.js / Vue / Mobile)
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, Smart Glide registers GET /img-data/{path} which returns
+    | a JSON payload with src, srcset, sizes, blurDataUrl, and optional schema.
+    | Use `api.middleware` to protect this route (e.g. ['auth:sanctum']).
+    |
+    */
+    'data_path' => env('SMART_GLIDE_DATA_PATH', '/img-data'),
+
+    'api' => [
+        'enabled'    => env('SMART_GLIDE_API_ENABLED', true),
+        'middleware' => [],   // Extra middleware for the JSON endpoint only
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Management Routes  (Web Dashboard / API)
+    |--------------------------------------------------------------------------
+    |
+    | Enables HTTP endpoints for managing the cache from your website/dashboard.
+    | IMPORTANT: protect these with auth middleware before enabling in production.
+    |
+    | Available endpoints (all prefixed with `path`):
+    |   GET  /img-admin/stats             → cache statistics
+    |   GET  /img-admin/stats/manifest    → full manifest list
+    |   POST /img-admin/warm              → warm a single image
+    |   POST /img-admin/warm-all          → warm all source images
+    |   POST /img-admin/forget            → evict cache for one image
+    |   GET  /img-admin/exists            → check if source image exists
+    |   GET  /img-admin/dimensions        → get original image dimensions
+    |
+    */
+    'admin' => [
+        'enabled'    => env('SMART_GLIDE_ADMIN_ENABLED', false),
+        'path'       => env('SMART_GLIDE_ADMIN_PATH', '/img-admin'),
+        'middleware' => ['auth'],   // ← Change to your auth middleware (e.g. 'auth:sanctum')
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Secure URL Signing
     |--------------------------------------------------------------------------
     |

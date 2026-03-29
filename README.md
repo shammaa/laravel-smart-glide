@@ -1,6 +1,6 @@
 # Laravel Smart Glide
 
-Advanced image processing toolkit for Laravel with unified `/img` routing, responsive components, and intelligent caching.
+Advanced image processing toolkit for Laravel with unified `/img` routing, responsive components, intelligent caching, and a headless JSON API for React/Next.js/Vue frontends.
 
 ---
 
@@ -14,6 +14,9 @@ Advanced image processing toolkit for Laravel with unified `/img` routing, respo
 - 🧾 **SEO-Ready** — Configurable attributes (`loading`, `fetchpriority`, `aria`, `title`, etc.) plus optional JSON-LD `ImageObject` snippets.
 - 🛡️ **Security Rules** — Block remote sources (optional), enforce max width/height/quality ranges, and stricter MIME filters.
 - 🧰 **DX Friendly** — Publishable config, auto-discovered components, and clean service provider wiring.
+- 🌐 **Headless JSON API** — `/img-data` endpoint returns `src`, `srcset`, `sizes`, and `blurDataUrl` as JSON for React/Vue/Mobile consumers.
+- 🛠️ **Admin Management API** — HTTP endpoints to warm, forget, and inspect cached images directly from your dashboard.
+- 📊 **Cache Introspection** — Check image existence, read dimensions, and view cache statistics through the Facade or HTTP.
 
 ---
 
@@ -97,6 +100,7 @@ This creates `config/smart-glide.php` in your application.
 php artisan tinker
 >>> app(Shammaa\SmartGlide\Support\SmartGlideManager::class)->deliveryUrl('team/photo.jpg', ['w' => 640])
 ```
+
 Opening the returned URL in a browser should yield the processed image (HTTP 200). A `403` usually indicates an invalid or missing signature—double‑check your `APP_KEY`/`SMART_GLIDE_SIGNATURE_KEY` and clear cached config.
 
 ---
@@ -152,9 +156,49 @@ $('#team-table').DataTable({
 });
 ```
 
-### Headless & API Usage (React / Vue)
+---
 
-Smart Glide provides a dedicated method to extract all responsive data as a plain array. This is ideal for JSON APIs (Laravel Resources), Inertia.js, or hybrid stacks where you need to render images in React, Vue, or mobile apps.
+## Headless & API Usage (React / Vue / Mobile)
+
+### JSON Data API
+
+Smart Glide provides a dedicated JSON endpoint at `/img-data/{path}` for headless frontends. This returns all responsive data as a structured JSON payload — ideal for React, Vue, Next.js, or mobile apps.
+
+```
+GET /img-data/products/phone.jpg?profile=hero&responsive=retina&blur_placeholder=1&schema=1
+```
+
+**Response:**
+
+```json
+{
+  "src": "/img/products/phone.jpg?profile=hero&s=...",
+  "srcset": "/img/products/phone.jpg?w=640&... 640w, /img/products/phone.jpg?w=960&... 960w, ...",
+  "sizes": "(max-width: 640px) 100vw, (max-width: 960px) 100vw, ...",
+  "widths": [640, 960, 1280, 1920, 2560],
+  "blurDataUrl": "data:image/webp;base64,UklGR...",
+  "schema": {
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    "contentUrl": "https://example.com/img/products/phone.jpg?..."
+  }
+}
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `profile` | string | Named compression profile (hero, thumbnail, etc.) |
+| `responsive` | string | Named responsive set, comma-separated widths, or `0` to disable |
+| `blur_placeholder` | boolean | Include base64 LQIP data URI |
+| `schema` | boolean | Include JSON-LD `ImageObject` data |
+| `alt` | string | Alt text used in the schema caption |
+| `w`, `h`, `fit`, `focus`, `q`, `fm` | mixed | Any additional Glide transformation parameters |
+
+### Facade: `responsiveData()`
+
+Extract responsive data as a plain array from PHP:
 
 ```php
 use Shammaa\SmartGlide\Facades\SmartGlide;
@@ -172,18 +216,25 @@ return response()->json([
 ]);
 ```
 
-The `responsiveData()` method returns an array structured for easy consumption:
+### Facade: `apiPayload()`
 
-```json
-{
-  "src": "/img/products/phone.jpg?profile=thumbnail&s=...",
-  "srcset": "/img/products/phone.jpg?w=640&... 640w, /img/products/phone.jpg?w=960&... 960w, ...",
-  "sizes": "(max-width: 640px) 100vw, (max-width: 960px) 100vw, ...",
-  "widths": [640, 960, 1280, 1920, 2560]
-}
+Build the complete JSON-ready payload (including blur placeholder and dimensions) from the Facade — perfect for Inertia.js props and Laravel API Resources:
+
+```php
+use Shammaa\SmartGlide\Facades\SmartGlide;
+
+// In a Laravel Resource or Inertia page
+return SmartGlide::apiPayload('products/phone.jpg', [
+    'profile'          => 'hero',
+    'responsive'       => 'retina',
+    'blur_placeholder' => true,
+    'dimensions'       => true,
+]);
+
+// Returns: { src, srcset, sizes, widths, blurDataUrl, dimensions: { width, height } }
 ```
 
-#### Consumption in React/Vue
+### Consumption in React/Vue
 
 Simply bind the returned attributes to your `<img>` tag:
 
@@ -196,6 +247,176 @@ Simply bind the returned attributes to your `<img>` tag:
   alt={title}
   loading="lazy"
 />
+```
+
+> **For a full-featured React/Next.js SDK**, install the companion package `smart-glide-react` (`npm install smart-glide-react`) which provides `<SmartGlideImage>`, hooks, and Next.js loader integration.
+
+---
+
+## Image Introspection
+
+### Check Image Existence
+
+```php
+if (SmartGlide::imageExists('avatars/user-42.jpg')) {
+    // Image found in source directory
+}
+```
+
+### Get Original Dimensions
+
+```php
+$dims = SmartGlide::dimensions('hero.jpg');
+// ['width' => 3840, 'height' => 2160]
+```
+
+### Generate Multiple URLs
+
+```php
+$urls = SmartGlide::multipleUrls('hero.jpg', [640, 960, 1280], ['profile' => 'hero']);
+// [640 => '/img/hero.jpg?w=640&...', 960 => '/img/hero.jpg?w=960&...', ...]
+```
+
+---
+
+## Admin Management API
+
+Enable HTTP endpoints for managing the image cache directly from your website or admin dashboard.
+
+### Setup
+
+```env
+SMART_GLIDE_ADMIN_ENABLED=true
+SMART_GLIDE_ADMIN_PATH=/img-admin
+```
+
+> **Security**: Admin routes are protected by `auth` middleware by default. Configure this in `config/smart-glide.php` under `admin.middleware`.
+
+### Endpoints
+
+#### Cache Statistics
+
+```
+GET /img-admin/stats
+```
+
+```json
+{
+  "count": 152,
+  "size_mb": 48.3,
+  "cache_path": "/var/www/storage/app/smart-glide-cache",
+  "source_path": "/var/www/storage/app/public",
+  "max_size_mb": 1024
+}
+```
+
+#### Full Manifest
+
+```
+GET /img-admin/stats/manifest
+```
+
+Returns every cached rendition with path, width, profile, format, and timestamps.
+
+#### Warm a Single Image
+
+```
+POST /img-admin/warm
+Content-Type: application/json
+
+{
+  "path": "products/phone.jpg",
+  "profile": "hero",
+  "widths": [640, 960, 1280]
+}
+```
+
+```json
+{ "warmed": true, "path": "products/phone.jpg", "widths": [640, 960, 1280] }
+```
+
+#### Warm All Source Images
+
+```
+POST /img-admin/warm-all
+Content-Type: application/json
+
+{
+  "profile": "thumbnail",
+  "widths": [320, 640],
+  "extensions": ["jpg", "png"]
+}
+```
+
+```json
+{ "warmed_count": 48, "skipped_count": 3, "size_mb": 52.1, "total_entries": 192 }
+```
+
+#### Evict Cache for an Image
+
+Call this after replacing or updating the original file:
+
+```
+POST /img-admin/forget
+Content-Type: application/json
+
+{ "path": "products/phone.jpg" }
+```
+
+```json
+{ "forgotten": true, "path": "products/phone.jpg", "deleted_count": 5 }
+```
+
+#### Check Image Existence
+
+```
+GET /img-admin/exists?path=products/phone.jpg
+```
+
+```json
+{ "exists": true, "path": "products/phone.jpg" }
+```
+
+#### Get Image Dimensions
+
+```
+GET /img-admin/dimensions?path=products/phone.jpg
+```
+
+```json
+{ "path": "products/phone.jpg", "width": 3840, "height": 2160 }
+```
+
+---
+
+## Cache Management (PHP)
+
+### Warm Paths Programmatically
+
+Pre-process and cache image renditions (ideal for queued jobs):
+
+```php
+// Warm specific widths
+SmartGlide::warmPath('products/phone.jpg', [320, 640, 960, 1280], ['profile' => 'hero']);
+
+// Warm using config breakpoints
+SmartGlide::warmPath('hero.jpg');
+```
+
+### Forget (Purge) a Path
+
+Delete all cached renditions after replacing the original file:
+
+```php
+$deleted = SmartGlide::forgetPath('products/phone.jpg');
+// Returns count of deleted entries (e.g. 5)
+```
+
+### Cache Statistics
+
+```php
+$stats = SmartGlide::cacheStats();
+// ['count' => 152, 'size_mb' => 48.3, 'manifest' => [...]]
 ```
 
 ---
@@ -215,6 +436,8 @@ The config file (`config/smart-glide.php`) exposes several groups:
 | `cache_headers` | Configure browser cache days and enable ETag responses. |
 | `logging` | Enable processing logs and choose the log channel. |
 | `seo` | Default attributes for `<img>` / background components and structured data behaviour. |
+| `api` | Enable/disable the headless JSON API endpoint and its middleware. |
+| `admin` | Enable/disable admin management endpoints, set path and auth middleware. |
 
 > Tip: set `SMART_GLIDE_SCHEMA_ENABLED=true` to emit JSON-LD `ImageObject` snippets for every component by default.
 
@@ -447,23 +670,26 @@ Point `SMART_GLIDE_PROFILE_FILE` to this file. Its definitions merge on top of t
 
 ## CLI Helpers
 
-Add these convenience commands to your application (optional suggestions):
-
-```php
-// app/Console/Commands/ClearSmartGlideCache.php
-```
-
-Then run:
-
 ```bash
-php artisan smart-glide:clear-cache
-```
+# Clear all cached renditions
+php artisan smart-glide:clear-cache --force
 
-*(Command scaffolding is not bundled yet; feel free to implement it following your workflow.)*
+# Pre-warm a single image
+php artisan smart-glide:warm products/phone.jpg --profile=hero --widths=640,960,1280
+
+# Pre-warm all source images
+php artisan smart-glide:warm --all --ext=jpg,png
+
+# View cache statistics
+php artisan smart-glide:stats
+
+# View full manifest
+php artisan smart-glide:stats --manifest
+```
 
 ### Scheduled Cache Purge
 
-The package now ships with a built-in Artisan command and scheduler hook:
+The package ships with a built-in Artisan command and scheduler hook:
 
 - Configure the daily purge time via `SMART_GLIDE_CACHE_PURGE_TIME` (default `03:00`).
 - Smart Glide registers `smart-glide:clear-cache` automatically; when the scheduler is enabled (`php artisan schedule:run`), cached renditions are cleared daily at the configured time.
@@ -483,14 +709,24 @@ Because this is a Laravel package, use [Orchestra Testbench](https://github.com/
 
 ---
 
-## Roadmap Ideas
+## Companion: React / Next.js SDK
 
-- Remote URL whitelisting & SSRF hardening helpers.
-- Middleware abstractions for header customization.
-- First-class Artisan commands (cache clear, warmup, manifest stats).
-- Vue/React components for hybrid stacks.
+For React and Next.js projects, install the companion package `smart-glide-react`:
 
-Contributions and issues are welcome once the package is public.
+```bash
+npm install smart-glide-react
+```
+
+It provides:
+
+- **`<SmartGlideImage>`** — Full-featured `<img>` component with blur placeholders, priority loading, and JSON-LD
+- **`<SmartGlidePicture>`** — `<picture>` element with multiple `<source>` branches
+- **`<SmartGlideBackground>`** — Responsive CSS background container
+- **`useSmartGlide()`** — Hook that fetches image data from the `/img-data` API
+- **`smartGlideNextLoader`** — Custom loader for `next/image`
+- **`fetchSmartGlideData()`** — Server-side fetcher for Next.js App Router (ISR support)
+
+See the [smart-glide-react README](https://github.com/shammaa/smart-glide-react) for full documentation.
 
 ---
 
@@ -501,11 +737,11 @@ Contributions and issues are welcome once the package is public.
 | `403 Smart Glide signature missing/invalid` | `APP_KEY` or `SMART_GLIDE_SIGNATURE_KEY` changed, or URL copied without the signed query string. | Restore the original key, run `php artisan config:clear` & `php artisan cache:clear`, and always use URLs generated by Smart Glide. |
 | Image returns `404` | Asset not found inside `config('smart-glide.source')`. | Move the file into the source directory (default `storage/app/public`) or update the config accordingly. |
 | Links must be absolute | `APP_URL` missing or incorrect. | Set `APP_URL` in `.env`; `deliveryUrl()` honours it when producing URLs. |
-| Cached variant stale | Old rendition remains in `storage/app/smart-glide-cache`. | Delete the cached file or add a lightweight Artisan command to purge Smart Glide cache entries. |
+| Cached variant stale | Old rendition remains in `storage/app/smart-glide-cache`. | Use `SmartGlide::forgetPath('path')` or call `POST /img-admin/forget` to purge. |
+| Admin routes return 404 | Admin API not enabled. | Set `SMART_GLIDE_ADMIN_ENABLED=true` in `.env` and clear config cache. |
 
 ---
 
 ## License
 
 Released under the [MIT License](LICENSE).
-

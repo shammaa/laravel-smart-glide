@@ -645,5 +645,210 @@ final class SmartGlideManager
     {
         return 'smart_glide_meta:' . md5($path . json_encode($parameters));
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // NEW: Advanced PHP-Only Methods
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Check whether the original source file exists.
+     *
+     * @example
+     * if (SmartGlide::imageExists('avatars/user-42.jpg')) { ... }
+     */
+    public function imageExists(string $path): bool
+    {
+        $sourcePath = $this->config['source'] ?? null;
+
+        if (! $sourcePath) {
+            return false;
+        }
+
+        $fullPath = rtrim($sourcePath, DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR
+            . ltrim($this->normalizePath($path), '/');
+
+        return file_exists($fullPath) && is_file($fullPath);
+    }
+
+    /**
+     * Read the pixel dimensions of the original source image.
+     * Returns ['width' => int, 'height' => int] or null if unreadable.
+     *
+     * @example
+     * [$w, $h] = array_values(SmartGlide::dimensions('hero.jpg'));
+     */
+    public function dimensions(string $path): ?array
+    {
+        $sourcePath = $this->config['source'] ?? null;
+
+        if (! $sourcePath) {
+            return null;
+        }
+
+        $fullPath = rtrim($sourcePath, DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR
+            . ltrim($this->normalizePath($path), '/');
+
+        if (! file_exists($fullPath)) {
+            return null;
+        }
+
+        $size = @getimagesize($fullPath);
+
+        if (! $size || $size[0] === 0) {
+            return null;
+        }
+
+        return ['width' => $size[0], 'height' => $size[1]];
+    }
+
+    /**
+     * Generate multiple URLs for the same image at different widths.
+     * Returns an associative array keyed by width.
+     *
+     * @param  array<int>  $widths
+     * @return array<int, string>  e.g. [640 => '/img/...', 960 => '/img/...']
+     *
+     * @example
+     * $urls = SmartGlide::multipleUrls('hero.jpg', [640, 960, 1280], ['profile' => 'hero']);
+     */
+    public function multipleUrls(string $path, array $widths, array $parameters = []): array
+    {
+        $urls = [];
+
+        foreach ($widths as $width) {
+            $urls[(int) $width] = $this->deliveryUrl($path, array_merge($parameters, ['w' => (int) $width]));
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Build the complete JSON-ready API payload returned by the /img-data endpoint.
+     * Useful for Inertia.js props, Laravel Resources, or API controllers.
+     *
+     * @example
+     * return SmartGlide::apiPayload('products/phone.jpg', [
+     *     'profile'          => 'hero',
+     *     'responsive'       => 'retina',
+     *     'blur_placeholder' => true,
+     * ]);
+     */
+    public function apiPayload(string $path, array $options = []): array
+    {
+        $profile    = $options['profile'] ?? null;
+        $responsive = $options['responsive'] ?? null;
+        $parameters = array_diff_key($options, array_flip(['profile', 'responsive', 'blur_placeholder', 'schema']));
+
+        $data = $this->responsiveData(
+            path:       $path,
+            profile:    $profile,
+            parameters: $parameters,
+            responsive: $responsive,
+        );
+
+        $payload = [
+            'src'    => $data['src'],
+            'srcset' => $data['srcset'],
+            'sizes'  => $data['sizes'],
+            'widths' => $data['widths'],
+        ];
+
+        if (! empty($options['blur_placeholder'])) {
+            $payload['blurDataUrl'] = $this->placeholder($path, $parameters);
+        }
+
+        if (! empty($options['dimensions'])) {
+            $payload['dimensions'] = $this->dimensions($path);
+        }
+
+        return array_filter($payload, static fn ($v) => $v !== null);
+    }
+
+    /**
+     * Pre-warm (process & cache) an image at the given widths.
+     * Run in a queued job for performance-critical paths.
+     *
+     * @param  array<int>  $widths  Widths to pre-process (defaults to config breakpoints).
+     *
+     * @example
+     * SmartGlide::warmPath('products/phone.jpg', [320, 640, 960, 1280], ['profile' => 'hero']);
+     */
+    public function warmPath(string $path, array $widths = [], array $parameters = []): void
+    {
+        if (empty($widths)) {
+            $widths = array_values($this->config['breakpoints'] ?? [360, 640, 960, 1280, 1600]);
+        }
+
+        $normalizedPath = $this->normalizePath($path);
+        $applied        = $this->applyProfiles($parameters);
+
+        foreach ($widths as $width) {
+            $params   = array_merge($applied, ['w' => (int) $width]);
+            $cacheKey = $this->manifestKey($normalizedPath, $params);
+
+            if (! $this->cache->has($cacheKey)) {
+                $this->warmCache($normalizedPath, $params, $cacheKey);
+            }
+        }
+    }
+
+    /**
+     * Return cache statistics: entry count, total disk size, and the manifest.
+     *
+     * @return array{count: int, size_mb: float, manifest: array}
+     *
+     * @example
+     * $stats = SmartGlide::cacheStats();
+     * // ['count' => 152, 'size_mb' => 48.3, 'manifest' => [...]]
+     */
+    public function cacheStats(): array
+    {
+        $cachePath = $this->config['cache'] ?? null;
+        $manifest  = $this->cache->get('smart_glide_manifest', []);
+        $sizeBytes = ($cachePath && is_dir($cachePath)) ? $this->directorySize($cachePath) : 0;
+
+        return [
+            'count'    => count($manifest),
+            'size_mb'  => round($sizeBytes / 1024 / 1024, 2),
+            'manifest' => $manifest,
+        ];
+    }
+
+    /**
+     * Delete the cached renditions for a specific image path.
+     * Call this after replacing/updating the original file.
+     *
+     * @example
+     * SmartGlide::forgetPath('products/phone.jpg');
+     */
+    public function forgetPath(string $path): int
+    {
+        $normalizedPath = $this->normalizePath($path);
+        $manifest       = $this->cache->get('smart_glide_manifest', []);
+        $forgottenCount = 0;
+
+        foreach ($manifest as $key => $entry) {
+            if (($entry['path'] ?? '') !== $normalizedPath) {
+                continue;
+            }
+
+            $filePath = $this->resolveCachePath($entry);
+            if ($filePath && file_exists($filePath)) {
+                unlink($filePath);
+            }
+
+            $this->cache->forget($key);
+            unset($manifest[$key]);
+            $forgottenCount++;
+        }
+
+        if ($forgottenCount > 0) {
+            $this->cache->put('smart_glide_manifest', $manifest, now()->addMonths(6));
+        }
+
+        return $forgottenCount;
+    }
 }
 
